@@ -2,14 +2,15 @@ import { format } from "node:util";
 
 import {
   type CallSignatureDeclaration,
+  type LiteralTypeNode,
   type MethodDeclaration,
   type NumericLiteral,
   type ParameterDeclaration,
+  type PrefixUnaryExpression,
   type PropertySignature,
   type Signature,
   type StringLiteral,
   SyntaxKind,
-  type Type,
   type TypeNode,
   type TypeParameterDeclaration,
 } from "ts-morph";
@@ -208,23 +209,98 @@ export const renderCallSignatureParameter = (
       );
 };
 
-export const isPrimitive = (type: Type) => {
-  return [
-    type.isBoolean,
-    type.isBooleanLiteral,
-    type.isNumber,
-    type.isNumberLiteral,
-    type.isBigInt,
-    type.isString,
-    type.isStringLiteral,
-    type.isUndefined,
-    type.isNull,
-    type.isUnknown,
-    type.isAny,
-    type.isNever,
-  ].some((e) => e.call(type));
-};
-
 export const indent = (hunk: string, level = 1) => {
   return hunk.replace(/^/gm, " ".repeat(level * 2));
+};
+
+/**
+ * determines if a TypeNode is a primitive or literal value.
+ *
+ * Covers:
+ * - Keyword primitives: string, number, boolean, bigint, symbol, undefined, null,
+ *   any, unknown, void, never
+ * - Literal types: string literals, numeric literals, boolean literals (true/false)
+ * - Negative numbers: -123, -1.5
+ * */
+export const isPrimitiveOrLiteral = (node: TypeNode): boolean => {
+  const text = node.getText();
+
+  // Check primitive types by text (most reliable)
+  const primitiveTexts = [
+    "string",
+    "number",
+    "boolean",
+    "bigint",
+    "symbol",
+    "undefined",
+    "null",
+    "any",
+    "unknown",
+    "void",
+    "never",
+  ];
+
+  if (primitiveTexts.includes(text)) {
+    return true;
+  }
+
+  const kind = node.getKind();
+
+  // Also check by kind as fallback
+  const primitiveKinds = [
+    SyntaxKind.StringKeyword,
+    SyntaxKind.NumberKeyword,
+    SyntaxKind.BooleanKeyword,
+    SyntaxKind.BigIntKeyword,
+    SyntaxKind.SymbolKeyword,
+    SyntaxKind.UndefinedKeyword,
+    SyntaxKind.NullKeyword,
+    SyntaxKind.AnyKeyword,
+    SyntaxKind.UnknownKeyword,
+    SyntaxKind.VoidKeyword,
+    SyntaxKind.NeverKeyword,
+  ];
+
+  if (primitiveKinds.includes(kind)) {
+    return true;
+  }
+
+  // Handle literal types
+  if (kind === SyntaxKind.LiteralType) {
+    const literalNode = (node as LiteralTypeNode).getLiteral();
+    const literalKind = literalNode.getKind();
+
+    // string / numeric / bigint literals
+    if (
+      [
+        SyntaxKind.StringLiteral,
+        SyntaxKind.NumericLiteral,
+        SyntaxKind.BigIntLiteral,
+      ].includes(literalKind)
+    ) {
+      return true;
+    }
+
+    // boolean literals
+    if (
+      [SyntaxKind.TrueKeyword, SyntaxKind.FalseKeyword].includes(literalKind)
+    ) {
+      return true;
+    }
+
+    // negative numbers: -123, -1.5
+    if (literalKind === SyntaxKind.PrefixUnaryExpression) {
+      const expr = literalNode as PrefixUnaryExpression;
+      if (
+        expr.getOperatorToken() === SyntaxKind.MinusToken &&
+        expr.getOperand().getKind() === SyntaxKind.NumericLiteral
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  return false;
 };

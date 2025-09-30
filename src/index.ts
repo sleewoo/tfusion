@@ -26,7 +26,7 @@ import { handlerQualifier as voidQualifier } from "./handlers/void-keyword";
 import type { CycleSignature, ResolvedType, UserOptions } from "./types";
 import {
   extractObjectProperties,
-  isPrimitive,
+  isPrimitiveOrLiteral,
   renderTypeParameter,
 } from "./utils";
 
@@ -97,8 +97,8 @@ export const flattener = (
       }
     }
 
-    // if no handler matched so far, perhaps it's a primitive value
-    if (isPrimitive(data.type)) {
+    // if no handler matched so far, perhaps it's a primitive/literal value
+    if (isPrimitiveOrLiteral(data.typeNode)) {
       return data.type.getText(data.typeNode);
     }
 
