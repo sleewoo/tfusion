@@ -155,10 +155,6 @@ export const flattener = (
         opts,
       );
 
-      const textEscaped = text
-        .replace(/(?<!\\)`/g, "\\`")
-        .replace(/(?<!\\)\$\{/g, "\\${");
-
       return [
         {
           kind: typeNode.getKindName() as ResolvedType["kind"],
@@ -166,7 +162,6 @@ export const flattener = (
           parameters: typeParameters,
           comments,
           text,
-          textEscaped,
           // Extract shallow property names
           getPropertyNames() {
             // Create a virtual source file with fully resolved type definition.

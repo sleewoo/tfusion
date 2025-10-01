@@ -88,16 +88,6 @@ export type ResolvedType = {
   text: string;
 
   /**
-   * By default, backticks and $ chars are not escaped, assuming the result will be written
-   * to a file as a standalone type definition.
-   *
-   * However, if the resulting text is intended to be used within a string,
-   * especially one wrapped in backticks, it's safer to use textEscaped
-   * to avoid syntax issues.
-   * */
-  textEscaped: string;
-
-  /**
    * Any single-line or multi-line comments
    * that immediately precede the original type declaration.
    * */
