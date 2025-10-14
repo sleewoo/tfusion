@@ -1,0 +1,3 @@
+---
+"ts-fusion": patch
+---
