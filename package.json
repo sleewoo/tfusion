@@ -2,7 +2,7 @@
   "type": "module",
   "name": "ts-fusion",
   "description": "Flatten complex TypeScript types into readable, inspectable plaintext structures",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "packageManager": "pnpm@10.17.0",
   "devEngines": {
     "runtime": {
