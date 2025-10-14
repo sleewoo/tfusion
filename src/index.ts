@@ -1,5 +1,3 @@
-import { format } from "node:util";
-
 import { Project, type SourceFile } from "ts-morph";
 
 import builtins from "./builtins";
@@ -24,11 +22,7 @@ import { handlerQualifier as typeReferenceQualifier } from "./handlers/type-refe
 import { handlerQualifier as unionQualifier } from "./handlers/unions";
 import { handlerQualifier as voidQualifier } from "./handlers/void-keyword";
 import type { CycleSignature, ResolvedType, UserOptions } from "./types";
-import {
-  extractObjectProperties,
-  isPrimitiveOrLiteral,
-  renderTypeParameter,
-} from "./utils";
+import { isPrimitiveOrLiteral, renderTypeParameter } from "./utils";
 
 export type { ResolvedType };
 
@@ -162,34 +156,6 @@ export const flattener = (
           parameters: typeParameters,
           comments,
           text,
-          // Extract shallow property names
-          getPropertyNames() {
-            // Create a virtual source file with fully resolved type definition.
-            // This is pretty lightweight — no file system access, no program update.
-            const sourceFile = project.createSourceFile(
-              `${typeName}.ts`,
-              format(
-                "%s\nexport type %s%s = %s",
-                comments.join("\n"),
-                typeName,
-                typeParameters.length
-                  ? `<${typeParameters.map((e) => e.fullText).join(", ")}>`
-                  : "",
-                text,
-              ).trim(),
-              { overwrite: true },
-            );
-
-            const typeNode = sourceFile.getTypeAlias(typeName)?.getTypeNode();
-
-            const props = typeNode //
-              ? extractObjectProperties(typeNode)
-              : [];
-
-            project.removeSourceFile(sourceFile);
-
-            return props;
-          },
         },
       ];
     }

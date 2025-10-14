@@ -18,47 +18,6 @@ import {
 import type { Next, ResolvedType } from "./types";
 
 /**
- * Extracts direct property names from a given TypeNode.
- * Operating purely on syntax — no TypeChecker involved.
- *
- * Works on plain object types `{ a: string }`,
- * intersections `{ a } & { b }`, and unions `{ a } | { b }`,
- * including parenthesized variants.
- *
- * @param typeNode - A TypeNode to extract property names from.
- * @returns A list of deduplicated property names.
- * */
-export const extractObjectProperties = (typeNode: TypeNode): Array<string> => {
-  const props = new Set<string>();
-  const kind = typeNode.getKind();
-
-  if (
-    [
-      SyntaxKind.ParenthesizedType,
-      SyntaxKind.IntersectionType,
-      SyntaxKind.UnionType,
-    ].includes(kind)
-  ) {
-    for (const node of typeNode.forEachChildAsArray()) {
-      for (const prop of extractObjectProperties(node as TypeNode)) {
-        props.add(prop);
-      }
-    }
-  } else if (kind === SyntaxKind.TypeLiteral) {
-    for (const prop of typeNode.getChildrenOfKind(
-      SyntaxKind.PropertySignature,
-    )) {
-      const name = getSafePropName(prop);
-      if (name) {
-        props.add(name);
-      }
-    }
-  }
-
-  return [...props];
-};
-
-/**
  * Safely extracts a printable property name from a PropertySignature node.
  *
  * Handles:

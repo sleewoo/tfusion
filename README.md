@@ -181,21 +181,15 @@ export type ResolvedType = {
   parameters: Array<{ name: string; text: string; fullText: string }>;
 
   /**
-   * The flattened type body (object literal only), without name or parameters.
-   * */
-  text: string;
-
-  /**
    * Any single-line or multi-line comments
    * that immediately precede the original type declaration.
    * */
   comments: Array<string>;
 
   /**
-   * Returns the list of direct property names defined in a type literal.
-   * Does not recurse into nested types — only includes top-level properties.
+   * The flattened type body (object literal only), without name or parameters.
    * */
-  getPropertyNames: () => Array<string>;
+  text: string;
 };
 ```
 
