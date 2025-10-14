@@ -36,7 +36,8 @@
     "test": "tsc -p ./test/tsconfig.json",
     "// ✨ publish": "",
     "prepub": "./scripts/publish/prepare",
-    "pub": "changeset publish"
+    "pub": "changeset publish",
+    "pub:tags": "git push --follow-tags"
   },
   "dependencies": {
     "ts-morph": "^27.0.0"
