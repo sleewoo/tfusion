@@ -1,4 +1,4 @@
-# 🧬 ts-fusion
+# 🧬 TSuit
 
 _"Understand your types. Flatten the complexity."_
 
@@ -64,7 +64,7 @@ export type UserResponse = ApiResponse<User>;
 export type PostResponse = ApiResponse<Post>;
 ```
 
-Just pass `api-response.ts` file to `ts-fusion`, it will return an array of `ResolvedType` objects:
+Just pass `api-response.ts` file to `TSuit`, it will return an array of `ResolvedType` objects:
 
 ```ts
 type UserResponse = {
@@ -138,19 +138,19 @@ Check `tests` folder for more examples.
 ## 📦 Install
 
 ```bash
-[p]npm i -D ts-fusion
+[p]npm i -D tsuit
 # or
-yarn add --dev ts-fusion
+yarn add --dev tsuit
 ```
 
-> **Note:** `ts-fusion` is an ESM-only package and requires **Node.js 22** or higher.
+> **Note:** `tsuit` is an ESM-only package and requires **Node.js 22** or higher.
 
 ## 🚀 Usage
 
 ### Basic usage
 
 ```ts
-import flattener from "ts-fusion";
+import flattener from "tsuit";
 
 const flatDefs = flattener("./path/to/file.ts");
 ```
@@ -200,7 +200,7 @@ export type ResolvedType = {
 The flattener accepts an optional second argument for customization:
 
 ```ts
-import flattener from "ts-fusion";
+import flattener from "tsuit";
 
 const flatDefs = flattener("./path/to/file.ts", {
   typesFilter: (name) => name.startsWith("API"),
@@ -256,7 +256,7 @@ export type UserOptions = {
 If you already have a `ts-morph` `Project` and want to reuse it across files:
 
 ```ts
-import { flattener } from "ts-fusion";
+import { flattener } from "tsuit";
 
 const flatDefs = flattener(existingProject, "./types/user.ts", options);
 ```
@@ -272,7 +272,7 @@ This is ideal when you're flattening multiple files in one session and want to a
 
 - **Performance:** This tool prioritizes type correctness over raw speed.
 
-- **Reliability:** `ts-fusion` is thoroughly tested, with over **40 test suites** and **1000+ individual tests**,
+- **Reliability:** `tsuit` is thoroughly tested, with over **40 test suites** and **1000+ individual tests**,
 covering most use-cases (but not all; some edge cases are printed as is).
 
 - **Disclaimer:** TypeScript is complex. Edge cases happen. Contributions and bug reports are welcome.
