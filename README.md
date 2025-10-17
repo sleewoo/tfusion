@@ -190,6 +190,17 @@ export type ResolvedType = {
    * The flattened type body (object literal only), without name or parameters.
    * */
   text: string;
+
+  /**
+   * For type literals, an array of properties.
+   * */
+  properties?: Array<{
+    name: string;
+    text: string;
+    optional: boolean;
+    readonly: boolean;
+  }>;
+
 };
 ```
 
@@ -248,6 +259,20 @@ export type UserOptions = {
    * @default false
    * */
   stripComments?: boolean;
+
+  /**
+   * Controls property resolution behavior for type literals.
+   * - When `true`: Resolves properties for ALL type literals encountered
+   * - When `string[]`: Resolves properties ONLY for type literals matching the specified names
+   * - When `false`: Skips property resolution entirely (default behavior)
+   * */
+  withProperties?: boolean | Array<string>;
+
+  /**
+   * An array of formatters to apply on resolved types.
+   * */
+  formatters?: Array<Formatter>;
+
 };
 ```
 
