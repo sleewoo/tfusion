@@ -2,7 +2,7 @@
   "type": "module",
   "name": "tsuit",
   "description": "Flatten complex TypeScript types into readable, inspectable plaintext structures",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "packageManager": "pnpm@10.17.0",
   "devEngines": {
     "runtime": {
