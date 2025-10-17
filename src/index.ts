@@ -49,7 +49,12 @@ export const flattener = (
       ? project.getSourceFile(file) || project.addSourceFileAtPath(file)
       : file;
 
-  const { typesFilter, maxDepth = 16, stripComments = false } = { ...opts };
+  const {
+    typesFilter,
+    maxDepth = 16,
+    stripComments = false,
+    withProperties,
+  } = { ...opts };
 
   const overrides: Record<string, string> = {
     ...builtins,
@@ -170,6 +175,24 @@ export const flattener = (
     return [];
   });
 
+  if (!withProperties) {
+    return resolvedTypes;
+  }
+
+  const typeLiteralsWithProperties = resolvedTypes.flatMap((e) => {
+    return e.kind === "TypeLiteral"
+      ? Array.isArray(withProperties)
+        ? withProperties.includes(e.name)
+          ? [e.name]
+          : []
+        : [e.name] // arriving here means withProperties is true
+      : [];
+  });
+
+  if (!typeLiteralsWithProperties.length) {
+    return resolvedTypes;
+  }
+
   /**
    * Writing resolved types to a source file to extract properties for type literals.
    * Creating a temp source file is pretty lightweight operation -
@@ -203,7 +226,8 @@ export const flattener = (
         return [];
       }
 
-      if (resolvedType.kind !== "TypeLiteral") {
+      if (!typeLiteralsWithProperties.includes(typeName)) {
+        // either is not TypeLiteral or missing from withProperties
         return [resolvedType];
       }
 

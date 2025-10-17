@@ -59,6 +59,14 @@ export type UserOptions = {
    * @default false
    * */
   stripComments?: boolean;
+
+  /**
+   * Controls property resolution behavior for type literals.
+   * - When `true`: Resolves properties for ALL type literals encountered
+   * - When `string[]`: Resolves properties ONLY for type literals matching the specified names
+   * - When `false`: Skips property resolution entirely (default behavior)
+   * */
+  withProperties?: boolean | Array<string>;
 };
 
 export type ResolvedType = {
