@@ -92,4 +92,14 @@ export type ResolvedType = {
    * The flattened type body (object literal only), without name or parameters.
    * */
   text: string;
+
+  /**
+   * For type literals, an array of properties.
+   * */
+  properties?: Array<{
+    name: string;
+    text: string;
+    optional: boolean;
+    readonly: boolean;
+  }>;
 };

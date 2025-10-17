@@ -40,6 +40,7 @@
     "pub:tags": "git push --follow-tags"
   },
   "dependencies": {
+    "crc": "^4.3.2",
     "ts-morph": "^27.0.0"
   },
   "devDependencies": {

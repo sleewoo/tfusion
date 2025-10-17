@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      crc:
+        specifier: ^4.3.2
+        version: 4.3.2
       ts-morph:
         specifier: ^27.0.0
         version: 27.0.0
@@ -838,8 +841,7 @@ packages:
           targets:
             - cpu: x86
               os: win32
-    version: 22.19.0
-    hasBin: true
+    version: 0.0.0
 
   onetime@7.0.0:
     resolution: {integrity: sha512-VXJjc87FScF88uafS3JllDgvAm+c/Slfz06lorj2uAY34rlUu0Nt+v8wreiImcrgAjjIHp1rXpTDlLOGw29WwQ==}
