@@ -54,6 +54,7 @@ export const flattener = (
     maxDepth = 16,
     stripComments = false,
     withProperties,
+    formatters,
   } = { ...opts };
 
   const overrides: Record<string, string> = {
@@ -175,7 +176,7 @@ export const flattener = (
     return [];
   });
 
-  if (!withProperties) {
+  if (!withProperties && !formatters?.length) {
     return resolvedTypes;
   }
 
@@ -189,30 +190,37 @@ export const flattener = (
       : [];
   });
 
-  if (!typeLiteralsWithProperties.length) {
+  if (!typeLiteralsWithProperties.length && !formatters?.length) {
     return resolvedTypes;
   }
 
+  const literalTypes = resolvedTypes
+    .map((e) => {
+      return format(
+        "%s\ntype %s%s = %s;",
+        e.comments.join("\n"),
+        e.name,
+        e.parameters.length
+          ? `<${e.parameters.map((e) => e.fullText).join(", ")}>`
+          : "",
+        e.text,
+      ).trim();
+    })
+    .join("\n");
+
   /**
-   * Writing resolved types to a source file to extract properties for type literals.
+   * Writing resolved types to a source file to extract properties for type literals,
+   * and apply formatters, if any.
    * Creating a temp source file is pretty lightweight operation -
    * no file-system calls and no type checker usage, jsut pure AST operations.
    * */
+  const tempSourceFileName = `${crc(resolvedTypes.map((e) => e.name).join("+"))}-${Date.now()}.ts`;
+
   const tempSourceFile = project.createSourceFile(
-    `${crc(resolvedTypes.map((e) => e.name).join(""))}`,
-    resolvedTypes
-      .map((e) => {
-        return format(
-          "%s\ntype %s%s = %s;",
-          e.comments.join("\n"),
-          e.name,
-          e.parameters.length
-            ? `<${e.parameters.map((e) => e.fullText).join(", ")}>`
-            : "",
-          e.text,
-        ).trim();
-      })
-      .join("\n"),
+    tempSourceFileName,
+    formatters?.length
+      ? formatters.reduce((c, f) => f(c, tempSourceFileName), literalTypes)
+      : literalTypes,
     { overwrite: true },
   );
 
@@ -226,15 +234,19 @@ export const flattener = (
         return [];
       }
 
-      if (!typeLiteralsWithProperties.includes(typeName)) {
-        // either is not TypeLiteral or missing from withProperties
-        return [resolvedType];
-      }
-
       const typeNode = typeAlias.getTypeNode();
 
       if (!typeNode) {
         return [resolvedType];
+      }
+
+      const text = formatters?.length
+        ? typeNode.getText() // getting formatted text
+        : resolvedType.text;
+
+      if (!typeLiteralsWithProperties.includes(typeName)) {
+        // either is not TypeLiteral or missing from withProperties
+        return [{ ...resolvedType, text }];
       }
 
       const properties = typeNode
@@ -247,7 +259,7 @@ export const flattener = (
             : [
                 {
                   name,
-                  text: typeNode.getText(),
+                  text,
                   optional: prop.hasQuestionToken(),
                   readonly: prop.isReadonly(),
                 },

@@ -23,6 +23,8 @@ export type HandlerQualifier = (
   opts: UserOptions,
 ) => Handler | undefined;
 
+export type Formatter = (text: string, filePath: string) => string;
+
 export type UserOptions = {
   /**
    * by default all exported types will be processed.
@@ -67,6 +69,11 @@ export type UserOptions = {
    * - When `false`: Skips property resolution entirely (default behavior)
    * */
   withProperties?: boolean | Array<string>;
+
+  /**
+   * An array of formatters to apply on resolved types.
+   * */
+  formatters?: Array<Formatter>;
 };
 
 export type ResolvedType = {
