@@ -192,7 +192,8 @@ export type ResolvedType = {
   text: string;
 
   /**
-   * For type literals, an array of properties.
+   * An array of properties returned for type literals.
+   * Effective only if `withProperties` option provided.
    * */
   properties?: Array<{
     name: string;
@@ -203,8 +204,6 @@ export type ResolvedType = {
 
 };
 ```
-
-> The output is plain text for now. If you want AST nodes, you can use `ts-morph` on the returned structure.
 
 ### With options
 
