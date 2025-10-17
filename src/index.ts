@@ -176,100 +176,89 @@ export const flattener = (
     return [];
   });
 
-  if (!withProperties && !formatters?.length) {
-    return resolvedTypes;
+  if (withProperties || formatters?.length) {
+    const literalTypes = resolvedTypes
+      .map((e) => {
+        return format(
+          "%s\ntype %s%s = %s;",
+          e.comments.join("\n"),
+          e.name,
+          e.parameters.length
+            ? `<${e.parameters.map((e) => e.fullText).join(", ")}>`
+            : "",
+          e.text,
+        ).trim();
+      })
+      .join("\n\n");
+
+    /**
+     * Creating a source file containing resolved types.
+     * Needed to extract properties for type literals and apply formatters, if any.
+     * Creating a temp source file is pretty lightweight operation -
+     * no file-system calls and no type checker usage, jsut pure AST operations.
+     * */
+    const sourceFileName = `${crc(resolvedTypes.map((e) => e.name).join("+"))}-${Date.now()}.ts`;
+
+    const sourceFile = project.createSourceFile(
+      sourceFileName,
+      formatters?.length
+        ? formatters.reduce((c, f) => f(c, sourceFileName), literalTypes)
+        : literalTypes,
+      { overwrite: true },
+    );
+
+    const resolvedTypesWithProperties = sourceFile
+      .getTypeAliases()
+      .flatMap((typeAlias): Array<ResolvedType> => {
+        const name = typeAlias.getName();
+        const resolvedType = resolvedTypes.find((e) => e.name === name);
+
+        if (!resolvedType) {
+          return [];
+        }
+
+        const typeNode = typeAlias.getTypeNode();
+
+        if (!typeNode) {
+          return [resolvedType];
+        }
+
+        const text = formatters?.length
+          ? typeNode.getText() // getting formatted text
+          : resolvedType.text;
+
+        if (!withProperties || typeNode.getKind() !== SyntaxKind.TypeLiteral) {
+          return [{ ...resolvedType, text }];
+        }
+
+        if (Array.isArray(withProperties) && !withProperties.includes(name)) {
+          return [{ ...resolvedType, text }];
+        }
+
+        const properties = typeNode
+          .getChildrenOfKind(SyntaxKind.PropertySignature)
+          .flatMap((prop) => {
+            const name = getSafePropName(prop);
+            const typeNode = prop.getTypeNode();
+            return !name || !typeNode
+              ? []
+              : [
+                  {
+                    name,
+                    text: typeNode.getText(),
+                    optional: prop.hasQuestionToken(),
+                    readonly: prop.isReadonly(),
+                  },
+                ];
+          });
+
+        return [{ ...resolvedType, text, properties }];
+      });
+
+    project.removeSourceFile(sourceFile);
+
+    return resolvedTypesWithProperties;
   }
 
-  const typeLiteralsWithProperties = resolvedTypes.flatMap((e) => {
-    return e.kind === "TypeLiteral"
-      ? Array.isArray(withProperties)
-        ? withProperties.includes(e.name)
-          ? [e.name]
-          : []
-        : [e.name] // arriving here means withProperties is true
-      : [];
-  });
-
-  if (!typeLiteralsWithProperties.length && !formatters?.length) {
-    return resolvedTypes;
-  }
-
-  const literalTypes = resolvedTypes
-    .map((e) => {
-      return format(
-        "%s\ntype %s%s = %s;",
-        e.comments.join("\n"),
-        e.name,
-        e.parameters.length
-          ? `<${e.parameters.map((e) => e.fullText).join(", ")}>`
-          : "",
-        e.text,
-      ).trim();
-    })
-    .join("\n");
-
-  /**
-   * Writing resolved types to a source file to extract properties for type literals,
-   * and apply formatters, if any.
-   * Creating a temp source file is pretty lightweight operation -
-   * no file-system calls and no type checker usage, jsut pure AST operations.
-   * */
-  const tempSourceFileName = `${crc(resolvedTypes.map((e) => e.name).join("+"))}-${Date.now()}.ts`;
-
-  const tempSourceFile = project.createSourceFile(
-    tempSourceFileName,
-    formatters?.length
-      ? formatters.reduce((c, f) => f(c, tempSourceFileName), literalTypes)
-      : literalTypes,
-    { overwrite: true },
-  );
-
-  const resolvedTypesWithProperties = sourceFile
-    .getTypeAliases()
-    .flatMap((typeAlias): Array<ResolvedType> => {
-      const typeName = typeAlias.getName();
-      const resolvedType = resolvedTypes.find((e) => e.name === typeName);
-
-      if (!resolvedType) {
-        return [];
-      }
-
-      const typeNode = typeAlias.getTypeNode();
-
-      if (!typeNode) {
-        return [resolvedType];
-      }
-
-      const text = formatters?.length
-        ? typeNode.getText() // getting formatted text
-        : resolvedType.text;
-
-      if (!typeLiteralsWithProperties.includes(typeName)) {
-        // either is not TypeLiteral or missing from withProperties
-        return [{ ...resolvedType, text }];
-      }
-
-      const properties = typeNode
-        .getChildrenOfKind(SyntaxKind.PropertySignature)
-        .flatMap((prop) => {
-          const name = getSafePropName(prop);
-          const typeNode = prop.getTypeNode();
-          return !name || !typeNode
-            ? []
-            : [
-                {
-                  name,
-                  text,
-                  optional: prop.hasQuestionToken(),
-                  readonly: prop.isReadonly(),
-                },
-              ];
-        });
-
-      return [{ ...resolvedType, properties }];
-    });
-
-  project.removeSourceFile(tempSourceFile);
-
-  return resolvedTypesWithProperties;
+  return resolvedTypes;
 };
