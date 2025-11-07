@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "name": "tsuit",
+  "name": "tfusion",
   "description": "Flatten complex TypeScript types into readable, inspectable plaintext structures",
   "version": "0.0.22",
   "packageManager": "pnpm@10.17.0",
@@ -13,7 +13,7 @@
   },
   "author": "Slee Woo",
   "license": "MIT",
-  "repository": "https://github.com/sleewoo/tsuit",
+  "repository": "https://github.com/sleewoo/tfusion",
   "publishConfig": {
     "access": "public"
   },
