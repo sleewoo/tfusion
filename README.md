@@ -2,7 +2,7 @@
 
 _"Understand your types. Flatten the complexity."_
 
-> Flatten any TypeScript type — no matter how deep, generic or entangled — into a clean, inspectable, plain-text structure.
+> Flatten any TypeScript type - no matter how deep, generic or entangled - into a clean, inspectable, plain-text structure.
 
 ## ⚡ Example
 
@@ -156,7 +156,7 @@ const flatDefs = flattener("./path/to/file.ts");
 ```
 
 This returns an array of `ResolvedType` objects representing all exported types in the file.
-Each flattened literal represents an expanded, serializable version of a TypeScript type — including its parameters, structure, and comments.
+Each flattened literal represents an expanded, serializable version of a TypeScript type - including its parameters, structure, and comments.
 
 ```ts
 export type ResolvedType = {
@@ -303,7 +303,7 @@ covering most use-cases (but not all; some edge cases are printed as is).
 
 ## 🧪 Coming Soon
 
-No CLI yet — but one is planned if there's enough interest. Open an issue if that's something you'd use.
+No CLI yet - but one is planned if there's enough interest. Open an issue if that's something you'd use.
 
 ## 🛠 Related
 

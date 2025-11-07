@@ -48,7 +48,7 @@ export const getSafePropName = (
     return (nameNode as StringLiteral | NumericLiteral).getLiteralText();
   }
 
-  // Case: computed property name (e.g., [Symbol.iterator]) — unsupported here
+  // Case: computed property name (e.g., [Symbol.iterator]) - unsupported here
   return undefined;
 };
 

@@ -443,7 +443,7 @@ const unwrapParenthesizedType = (typeNode: TypeNode): TypeNode => {
      * Unwraps the inner type from a parenthesized type.
      *
      * While the inner node can technically be any kind,
-     * we treat it as a TypeNode for simplicity—
+     * we treat it as a TypeNode for simplicity -
      * invalid types (non-array, non-tuple, non-object) will be filtered later anyway.
      * */
     return unwrapParenthesizedType(innerTypeNode as TypeNode);
