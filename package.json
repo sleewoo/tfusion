@@ -3,11 +3,11 @@
   "name": "tfusion",
   "description": "Flatten complex TypeScript types into readable, inspectable plaintext structures",
   "version": "0.0.22",
-  "packageManager": "pnpm@10.17.0",
+  "packageManager": "pnpm@10.20.0",
   "devEngines": {
     "runtime": {
       "name": "node",
-      "version": "^22.19.0",
+      "version": "^22.21.1",
       "onFail": "download"
     }
   },
@@ -41,22 +41,22 @@
   },
   "dependencies": {
     "crc": "^4.3.2",
-    "ts-morph": "^27.0.0"
+    "ts-morph": "^27.0.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.4",
+    "@biomejs/biome": "^2.3.4",
     "@changesets/cli": "^2.29.7",
     "@libconfig/biome": "^0.0.7",
     "@libconfig/typescript": "^0.0.6",
     "@libutil/esbuilder": "^0.0.7",
     "@libutil/render": "^0.0.6",
     "@types/fs-extra": "^11.0.4",
-    "@types/node": "^24.5.2",
+    "@types/node": "^24.10.0",
     "fs-extra": "^11.3.2",
     "resolve-tspaths": "^0.8.23",
-    "rimraf": "^6.0.1",
+    "rimraf": "^6.1.0",
     "tinyglobby": "^0.2.15",
-    "tsafe": "^1.8.10",
-    "typescript": "^5.9.2"
+    "tsafe": "^1.8.12",
+    "typescript": "^5.9.3"
   }
 }
