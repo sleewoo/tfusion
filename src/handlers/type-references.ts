@@ -42,13 +42,10 @@ export const handlerQualifier: HandlerQualifier = (
          * - type symbol/aliasedSymbol is flattening builtins, eg:
          *   export type Test = Readonly<{}>
          *   converted to:
-         *   type Readonly<T>={readonly[P in keyof T]:T[P];}
+         *   type Readonly<T> = {readonly[P in keyof T]:T[P];}
          * */
-        const nameSymbol =
-          nameNode
-            .getSymbol()
-            ?.getAliasedSymbol() ?? //
-          nameNode.getSymbol();
+        const aliasedSymbol = nameNode.getSymbol()?.getAliasedSymbol();
+        const nameSymbol = aliasedSymbol ?? nameNode.getSymbol();
 
         const aliasDeclaration = nameSymbol
           ?.getDeclarations()
