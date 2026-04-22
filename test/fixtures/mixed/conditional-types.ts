@@ -13,9 +13,8 @@ export type ConditionalTypesCase1<T> = T extends Error
   : { data: T };
 
 // Similar to recursive promise unwrapping
-export type ConditionalTypesCase2<T> = T extends Promise<infer U>
-  ? ConditionalTypesCase2<U>
-  : T;
+export type ConditionalTypesCase2<T> =
+  T extends Promise<infer U> ? ConditionalTypesCase2<U> : T;
 
 // Pattern from authentication type guards
 export type ConditionalTypesCase3<T> = T extends BrandedArraysCase1[number]
@@ -112,13 +111,12 @@ export type ConditionalTypesCase19<T> = T extends object
   : never;
 
 // Similar to recursive type limits
-export type ConditionalTypesCase20<T, D extends number = 0> = T extends Array<
-  infer U
->
-  ? D extends 3
-    ? T
-    : ConditionalTypesCase20<U, D extends number ? D : never>
-  : T;
+export type ConditionalTypesCase20<T, D extends number = 0> =
+  T extends Array<infer U>
+    ? D extends 3
+      ? T
+      : ConditionalTypesCase20<U, D extends number ? D : never>
+    : T;
 
 // Pattern from financial instrument checks
 export type ConditionalTypesCase21<T> = T extends { type: "stock" }

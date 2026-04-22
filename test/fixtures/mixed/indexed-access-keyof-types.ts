@@ -47,9 +47,8 @@ export type IndexedAccessKeyofTypesCase7 =
   BrandedArraysCase1[number]["__brand"];
 
 // Similar to recursive type navigation
-export type IndexedAccessKeyofTypesCase8<T> = T extends Array<infer U>
-  ? IndexedAccessKeyofTypesCase8<U>
-  : keyof T;
+export type IndexedAccessKeyofTypesCase8<T> =
+  T extends Array<infer U> ? IndexedAccessKeyofTypesCase8<U> : keyof T;
 
 // Pattern from physics engine components
 export type IndexedAccessKeyofTypesCase9 =

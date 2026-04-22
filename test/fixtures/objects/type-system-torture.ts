@@ -193,13 +193,14 @@ export type TypeTortureTest23<T> = {
 };
 
 // 24. Type narrowing
-export type TypeTortureTest24<T> = T extends Array<infer U>
-  ? U extends object
-    ? { [K in keyof U]: U[K][] }
-    : U
-  : T extends object
-    ? { [K in keyof T]: [T[K]] }
-    : T;
+export type TypeTortureTest24<T> =
+  T extends Array<infer U>
+    ? U extends object
+      ? { [K in keyof U]: U[K][] }
+      : U
+    : T extends object
+      ? { [K in keyof T]: [T[K]] }
+      : T;
 
 // 25. Ultimate type challenge (combines multiple features)
 export type TypeTortureTest25<T> = T extends (...args: infer A) => infer R

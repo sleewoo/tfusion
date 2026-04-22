@@ -85,9 +85,8 @@ export type GenericsStressCase13<T> = T extends { permissions: string[] }
   : never;
 
 // Similar to recursive type utilities
-export type GenericsStressCase14<T> = T extends Array<infer U>
-  ? GenericsStressCase14<U>
-  : T;
+export type GenericsStressCase14<T> =
+  T extends Array<infer U> ? GenericsStressCase14<U> : T;
 
 // Pattern from internationalization systems
 export type GenericsStressCase15<T extends Record<string, string>> = {

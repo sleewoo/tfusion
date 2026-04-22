@@ -139,12 +139,10 @@ export type TreeNode = {
   children: [];
 };
 
-export type NumericRange<Start extends number, End extends number> = Exclude<
-  Enumerate<End>,
-  Enumerate<Start>
-> extends number
-  ? Exclude<Enumerate<End>, Enumerate<Start>>
-  : never;
+export type NumericRange<Start extends number, End extends number> =
+  Exclude<Enumerate<End>, Enumerate<Start>> extends number
+    ? Exclude<Enumerate<End>, Enumerate<Start>>
+    : never;
 
 type Enumerate<
   N extends number,

@@ -5,9 +5,8 @@ import type { ComplexObjectArraysCase1 } from "@/fixtures/arrays/complex-object-
 import type { HybridArraysCase3 } from "@/fixtures/arrays/hybrid-arrays";
 
 // Inspired by deep promise unwrapping
-export type InferDeepCase1<T> = T extends Promise<infer U>
-  ? InferDeepCase1<U>
-  : T;
+export type InferDeepCase1<T> =
+  T extends Promise<infer U> ? InferDeepCase1<U> : T;
 
 // Similar to AST traversal
 export type InferDeepCase2<T> = T extends { children: infer C }
