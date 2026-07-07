@@ -26,7 +26,7 @@ import { handlerQualifier as unionQualifier } from "./handlers/unions";
 import { handlerQualifier as voidQualifier } from "./handlers/void-keyword";
 import type { CycleSignature, ResolvedType, UserOptions } from "./types";
 import {
-  getSafePropName,
+  getLiteralPropName,
   isPrimitiveOrLiteral,
   renderTypeParameter,
 } from "./utils";
@@ -238,18 +238,20 @@ export const flattener = (
         const properties = typeNode
           .getChildrenOfKind(SyntaxKind.PropertySignature)
           .flatMap((prop) => {
-            const name = getSafePropName(prop);
+            const nameNode = prop.getNameNode();
             const typeNode = prop.getTypeNode();
-            return !name || !typeNode
-              ? []
-              : [
+            return typeNode
+              ? [
                   {
-                    name,
+                    name: prop.getName(),
+                    nameLiteral: getLiteralPropName(nameNode),
+                    nameKind: nameNode.getKindName() as never,
                     text: typeNode.getText(),
                     optional: prop.hasQuestionToken(),
                     readonly: prop.isReadonly(),
                   },
-                ];
+                ]
+              : [];
           });
 
         return [{ ...resolvedType, text, properties }];

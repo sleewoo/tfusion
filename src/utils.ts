@@ -4,12 +4,10 @@ import {
   type CallSignatureDeclaration,
   type LiteralTypeNode,
   type MethodDeclaration,
-  type NumericLiteral,
   type ParameterDeclaration,
   type PrefixUnaryExpression,
-  type PropertySignature,
+  type PropertyName,
   type Signature,
-  type StringLiteral,
   SyntaxKind,
   type TypeNode,
   type TypeParameterDeclaration,
@@ -18,38 +16,25 @@ import {
 import type { Next, ResolvedType } from "./types";
 
 /**
- * Safely extracts a printable property name from a PropertySignature node.
+ * Extracts a comparable property name from a PropertySignature node.
  *
- * Handles:
- * - Identifiers (e.g., `id`, `username`)
- * - String or numeric literals (e.g., `"foo-bar"`, `123`)
- *
- * Skips:
- * - Computed properties (e.g., `[Symbol.iterator]`)
+ * - Identifier - returned as-is (`id` -> `id`)
+ * - String / numeric literal - normalized via getLiteralText(): quotes stripped
+ *   and numerics canonicalized, matching the runtime object key
+ *     `"first-name"` -> `first-name`
+ *     `0x10` -> `16`
+ * - Anything else (computed names, bigint literals, ...) - returned as is
+ *   i.e. the raw source text (`[sym]`, `1n`). For computed names this
+ *   is the bracketed expression, not a resolved key.
  *
  * @param prop The PropertySignature node to extract the name from.
- * @returns A string representing the safe property name, or undefined if unsupported.
+ * @returns A string representing the property name
  * */
-export const getSafePropName = (
-  prop: PropertySignature,
-): string | undefined => {
-  const nameNode = prop.getNameNode();
-  const kind = nameNode.getKind();
-
-  // Case: simple identifier, like `id` or `username`
-  if (kind === SyntaxKind.Identifier) {
-    // Identifiers are not quoted, so simply returning name
-    return prop.getName();
-  }
-
-  // Case: string or number literal (e.g., `"first-name"`, `123`)
-  if ([SyntaxKind.StringLiteral, SyntaxKind.NumericLiteral].includes(kind)) {
-    // Extracting raw value, without quotes
-    return (nameNode as StringLiteral | NumericLiteral).getLiteralText();
-  }
-
-  // Case: computed property name (e.g., [Symbol.iterator]) - unsupported here
-  return undefined;
+export const getLiteralPropName = (nameNode: PropertyName): string => {
+  return nameNode.isKind(SyntaxKind.StringLiteral) ||
+    nameNode.isKind(SyntaxKind.NumericLiteral)
+    ? nameNode.getLiteralText()
+    : nameNode.getText();
 };
 
 export const renderTypeParameter = (
