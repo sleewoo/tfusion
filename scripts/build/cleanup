@@ -1,1 +1,1 @@
-rimraf pkg
+find pkg -type f -exec rm -fv {} \;

@@ -28,8 +28,8 @@
   },
   "scripts": {
     "// ✨ build": "",
-    "build": "esbuilder ./src/index -o pkg -l .hbs=text -s ./scripts/build/",
-    "prebuild:tests": "esbuilder ./src/test-factory/run -l .hbs=text -o ./test",
+    "prebuild": "for e in ./scripts/build/*; do sh $e; done",
+    "build": "esbuild ./src/index.ts --bundle --platform=node --target=node22 --format=esm --packages=external --outdir=pkg",
     "build:tests": "node ./test/run",
     "postbuild:tests": "rm ./test/run.js*",
     "// ✨ test": "",
