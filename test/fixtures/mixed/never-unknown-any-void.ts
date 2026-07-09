@@ -45,7 +45,6 @@ export type NeverUnknownAnyVoidCase11 = any extends infer T ? T : never;
 // Pattern from type-safe void operations
 export type NeverUnknownAnyVoidCase12 = {
   log: (message: string) => void;
-  // biome-ignore lint: void
   value: void extends true ? never : unknown;
 };
 
@@ -66,7 +65,6 @@ export type NeverUnknownAnyVoidCase16 = {
 };
 
 // Similar to impossible intersections
-// biome-ignore lint: void
 export type NeverUnknownAnyVoidCase17 = void & { value: never };
 
 // Pattern from generic constraints

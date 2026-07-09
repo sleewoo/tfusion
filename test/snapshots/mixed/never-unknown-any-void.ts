@@ -98,7 +98,6 @@ type NeverUnknownAnyVoidCase11Flat = ((any) extends (infer T) ? (T /** unresolve
 // Pattern from type-safe void operations
 type NeverUnknownAnyVoidCase12Flat = {
   log: ((message: string) => void);
-  // biome-ignore lint: void
   value: ((void) extends (true) ? (never) : (unknown))
 };
 
@@ -119,7 +118,6 @@ type NeverUnknownAnyVoidCase16Flat = {
 };
 
 // Similar to impossible intersections
-// biome-ignore lint: void
 type NeverUnknownAnyVoidCase17Flat = ((void) & ({
   value: never
 }));

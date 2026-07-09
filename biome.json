@@ -1,6 +1,74 @@
 {
-  "extends": ["@libconfig/biome"],
+  "$schema": "https://biomejs.dev/schemas/2.5.3/schema.json",
+
   "files": {
-    "includes": ["./src/**/*.ts", "./test/fixtures/**/*.ts"]
+    "includes": ["./src/**/*.ts", "./test/**/*.ts", "!./test/snapshots/**/*.ts"]
+  },
+
+  "formatter": {
+    "indentStyle": "space",
+    "indentWidth": 2
+  },
+
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "performance": {
+        "noAccumulatingSpread": "off"
+      },
+      "complexity": {
+        "noBannedTypes": "off",
+        "noUselessTernary": "off",
+        "useLiteralKeys": "off"
+      },
+      "correctness": {
+        "noUnusedVariables": {
+          "level": "info",
+          "options": {
+            "ignoreRestSiblings": true
+          }
+        }
+      },
+      "style": {
+        "useFilenamingConvention": "off"
+      },
+      "suspicious": {
+        "noEmptyInterface": "off",
+        "noConfusingVoidType": "off",
+        "noConsole": {
+          "level": "info",
+          "options": {
+            "allow": ["assert", "error", "info", "warn"]
+          }
+        }
+      }
+    }
+  },
+
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "groups": [
+              [":NODE:", ":BUN:"],
+              ":BLANK_LINE:",
+
+              [":PACKAGE:", ":PACKAGE_WITH_PROTOCOL:"],
+              ":BLANK_LINE:",
+
+              [":URL:"],
+              ":BLANK_LINE:",
+
+              [":ALIAS:"],
+              ":BLANK_LINE:",
+
+              [":PATH:"]
+            ]
+          }
+        }
+      }
+    }
   }
 }
