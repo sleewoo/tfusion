@@ -1,7 +1,12 @@
 import { format } from "node:util";
 
 import crc from "crc/crc32";
-import { Project, type SourceFile, SyntaxKind } from "ts-morph";
+import {
+  Project,
+  type ProjectOptions,
+  type SourceFile,
+  SyntaxKind,
+} from "ts-morph";
 
 import builtins from "./builtins";
 import { handlerQualifier as arrayQualifier } from "./handlers/arrays";
@@ -33,13 +38,9 @@ import {
 
 export type { ResolvedType };
 
-export default (file: string, opts?: UserOptions) => {
-  const project = new Project({ compilerOptions: { skipLibCheck: true } });
-  const sourceFile = project.addSourceFileAtPath(file);
-  return flattener(project, sourceFile, opts);
-};
+export const createProject = (options?: ProjectOptions) => new Project(options);
 
-export const flattener = (
+export default (
   project: Project,
   file: string | SourceFile,
   opts?: UserOptions,

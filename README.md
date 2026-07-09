@@ -150,9 +150,10 @@ yarn add --dev tfusion
 ### Basic usage
 
 ```ts
-import flattener from "tfusion";
+import flattener, { createProject } from "tfusion";
 
-const flatDefs = flattener("./path/to/file.ts");
+const project = createProject();
+const flatDefs = flattener(project, "./path/to/file.ts");
 ```
 
 This returns an array of `ResolvedType` objects representing all exported types in the file.
@@ -211,12 +212,10 @@ export type ResolvedType = {
 
 ### With options
 
-The flattener accepts an optional second argument for customization:
+The flattener also accepts options for customization:
 
 ```ts
-import flattener from "tfusion";
-
-const flatDefs = flattener("./path/to/file.ts", {
+const flatDefs = flattener(project, "./path/to/file.ts", {
   typesFilter: (name) => name.startsWith("API"),
   overrides: {
     CustomPromise: "Promise",
@@ -279,23 +278,6 @@ export type UserOptions = {
 };
 ```
 
-### Advanced: working with `ts-morph` directly
-
-If you already have a `ts-morph` `Project` and want to reuse it across files:
-
-```ts
-import { flattener } from "tfusion";
-
-const flatDefs = flattener(existingProject, "./types/user.ts", options);
-```
-
-```ts
-// Signature:
-(project: Project, file: string | SourceFile, opts?: UserOptions) => ResolvedType[];
-```
-
-This is ideal when you're flattening multiple files in one session and want to avoid recreating the project each time.
-
 ## 🔍 Notes
 
 - **Performance:** This tool prioritizes type correctness over raw speed.
@@ -304,10 +286,6 @@ This is ideal when you're flattening multiple files in one session and want to a
 covering most use-cases (but not all; some edge cases are printed as is).
 
 - **Disclaimer:** TypeScript is complex. Edge cases happen. Contributions and bug reports are welcome.
-
-## 🧪 Coming Soon
-
-No CLI yet - but one is planned if there's enough interest. Open an issue if that's something you'd use.
 
 ## 🛠 Related
 
