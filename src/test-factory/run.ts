@@ -5,7 +5,7 @@ import fsx from "fs-extra";
 import { glob } from "tinyglobby";
 import { Project } from "ts-morph";
 
-import { flattener } from "@/index";
+import flattener from "@/index";
 
 import template from "./templates/tsafe.hbs";
 
@@ -36,7 +36,8 @@ for (const file of await glob("**/*.ts", {
       arguments: parameters.length
         ? `<${parameters.map(() => "never").join(", ")}>`
         : "",
-      skipTest: comments.some((e) => e.includes("@skip-test")),
+      relaxedAssert: comments.some((e) => e.includes("@relaxed-assert")),
+      skipAssert: comments.some((e) => e.includes("@skip-assert")),
       comments,
     })),
   });

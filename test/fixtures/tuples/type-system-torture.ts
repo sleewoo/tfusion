@@ -40,7 +40,7 @@ export type TypeSystemTortureTest12<T, U> = [...T[], U[]] extends [...infer R]
   ? R
   : never;
 
-// @skip-test: unique symbol makes unique types
+// @skip-assert: unique symbol makes unique types
 export type TypeSystemTortureTest13<T> = [T, T] & {
   readonly __brand: unique symbol;
 };

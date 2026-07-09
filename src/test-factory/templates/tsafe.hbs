@@ -14,12 +14,18 @@ type {{name}}Flat{{parameters}} = {{text}};
 {{/each}}
 
 {{#each types}}
-{{#unless skipTest}}
+{{#unless skipAssert}}
 assert<
+  {{#if relaxedAssert}}
+    {{name}}Flat{{arguments}} extends {{name}}{{arguments}}
+      ? {{name}}{{arguments}} extends {{name}}Flat{{arguments}} ? true : false
+      : false
+  {{else}}
   Equals<
     {{name}}{{arguments}},
     {{name}}Flat{{arguments}}
   >
+  {{/if}}
 >;
 {{/unless}}
 {{/each}}

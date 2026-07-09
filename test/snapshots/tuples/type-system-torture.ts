@@ -128,7 +128,7 @@ type TypeSystemTortureTest12Flat<T, U> = (([
   ...infer R
 ]) ? (R /** unresolved */) : (never));
 
-// @skip-test: unique symbol makes unique types
+// @skip-assert: unique symbol makes unique types
 type TypeSystemTortureTest13Flat<T> = (([
   T,
   T
