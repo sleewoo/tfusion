@@ -36,7 +36,7 @@
     "posttest": "rm -fv ./test/run.js*",
     "// ✨ publish": "",
     "prepub": "./scripts/publish/prepare",
-    "pub": "changeset publish",
+    "pub": "pnpm stage publish",
     "pub:tags": "git push --follow-tags"
   },
   "dependencies": {
