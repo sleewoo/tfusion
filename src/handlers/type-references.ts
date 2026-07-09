@@ -3,7 +3,7 @@ import { format } from "node:util";
 import { SyntaxKind } from "ts-morph";
 
 import type { CycleParameters, HandlerQualifier } from "@/types";
-import { renderTypeParameter } from "@/utils";
+import { renderTypeParameter, resolveInterfaceMembers } from "@/utils";
 
 export const handlerQualifier: HandlerQualifier = (
   { typeNode, typeParameters },
@@ -47,9 +47,11 @@ export const handlerQualifier: HandlerQualifier = (
         const aliasedSymbol = nameNode.getSymbol()?.getAliasedSymbol();
         const nameSymbol = aliasedSymbol ?? nameNode.getSymbol();
 
-        const aliasDeclaration = nameSymbol
-          ?.getDeclarations()
-          ?.find((e) => e.isKind(SyntaxKind.TypeAliasDeclaration));
+        const declarations = nameSymbol?.getDeclarations();
+
+        const aliasDeclaration = declarations?.find((e) =>
+          e.isKind(SyntaxKind.TypeAliasDeclaration),
+        );
 
         const aliasNode = aliasDeclaration
           ? aliasDeclaration.getTypeNode()
@@ -93,9 +95,33 @@ export const handlerQualifier: HandlerQualifier = (
               }, {}),
           });
         } else {
-          text = stripComments
-            ? typeNode.getText()
-            : `${typeNode.getText()} /** unresolved */`;
+          // no type alias for this reference - try an interface declaration.
+          // Interfaces have no single TypeNode to recurse into, so their
+          // members are rendered inline here (own + merged + inherited).
+          // Generic interfaces, method/call signatures, and non-interface
+          // heritage return undefined from resolveInterfaceMembers, so the
+          // reference falls through to the unresolved branch below rather
+          // than being inlined incorrectly.
+          const interfaceDeclaration = declarations?.find((e) =>
+            e.isKind(SyntaxKind.InterfaceDeclaration),
+          );
+
+          const interfaceBody =
+            interfaceDeclaration && !typeArguments.length
+              ? resolveInterfaceMembers(
+                  interfaceDeclaration,
+                  next,
+                  Boolean(stripComments),
+                )
+              : undefined;
+
+          if (interfaceBody !== undefined) {
+            text = interfaceBody;
+          } else {
+            text = stripComments
+              ? typeNode.getText()
+              : `${typeNode.getText()} /** unresolved */`;
+          }
         }
 
         return text;

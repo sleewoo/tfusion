@@ -20,7 +20,7 @@ export const handlerQualifier: HandlerQualifier = (
          * and template index signatures, also without comments:
          *     Record<`some_${string}`, ...>
          *     { [key: `some_${string}`]: ... }
-         */
+         * */
         const indexSignatures = typeNode
           .getIndexSignatures()
           .flatMap((signature) => {

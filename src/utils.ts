@@ -2,6 +2,7 @@ import { format } from "node:util";
 
 import {
   type CallSignatureDeclaration,
+  type InterfaceDeclaration,
   type LiteralTypeNode,
   type MethodDeclaration,
   type ParameterDeclaration,
@@ -247,4 +248,203 @@ export const isPrimitiveOrLiteral = (node: TypeNode): boolean => {
   }
 
   return false;
+};
+
+/**
+ * Renders an interface declaration as an inline object-literal body.
+ *
+ * tfusion resolves named type references by inlining their declaration. Type
+ * aliases expose a single TypeNode that the traversal recurses into directly;
+ * interfaces do not, so their members are rendered here instead.
+ *
+ * Coverage:
+ * - own and merged members (multiple `interface X {}` blocks) - ts-morph's
+ *   `getProperties()`/`getMethods()`/etc. already flatten declaration merging.
+ * - inherited members via `extends`, walked through `getBaseDeclarations()`.
+ *   A derived member shadows an inherited one of the same name (nearest wins).
+ *
+ * Each member's type node is fed back through `next()`, so nested references
+ * (aliases, other interfaces, arrays, unions) flatten with the same rules as
+ * the rest of the traversal.
+ *
+ * Not covered (callers should keep the unresolved fallthrough for these):
+ * - generic interfaces whose members depend on type parameters; the parameter
+ *   map is not threaded here, so `resolveInterfaceMembers` returns undefined
+ *   when the interface (or any base) declares type parameters, letting the
+ *   caller emit the bare name rather than a wrong inlining.
+ * */
+
+type RenderedMember = {
+  name: string;
+  text: string;
+  optional: boolean;
+  readonly: boolean;
+  comments: Array<string>;
+};
+
+const collectInterfaceMembers = (
+  iface: InterfaceDeclaration,
+  next: Next,
+  stripComments: boolean,
+  seen: Map<string, RenderedMember>,
+  visited: Set<string>,
+): boolean => {
+  // bail on generics - member types may depend on type parameters
+  // that are not threaded through here (see doc note above).
+  if (iface.getTypeParameters().length) {
+    return false;
+  }
+
+  // A merged interface has several declarations; getProperties() is
+  // per-declaration, so gather every declaration. Different symbol accessors
+  // expose different subsets: the reference-site symbol can miss `declare
+  // global` augmentations spread across files, while the name-node symbol can
+  // miss same-module re-opens seen through an import. Union both to be safe.
+  const declarationSet = new Set<InterfaceDeclaration>();
+
+  for (const symbol of [iface.getSymbol(), iface.getNameNode().getSymbol()]) {
+    if (!symbol) {
+      continue;
+    }
+    for (const declaration of symbol.getDeclarations()) {
+      if (declaration.isKind(SyntaxKind.InterfaceDeclaration)) {
+        declarationSet.add(declaration);
+      }
+    }
+  }
+
+  const declarations = declarationSet.size ? [...declarationSet] : [iface];
+
+  const ifaceId = [
+    //
+    iface.getSourceFile().getFilePath(),
+    iface.getName(),
+  ].join("#");
+
+  if (visited.has(ifaceId)) {
+    return true;
+  }
+
+  visited.add(ifaceId);
+
+  // inherited first, so own/derived members overwrite same-named ones
+  for (const declaration of declarations) {
+    for (const base of declaration.getBaseDeclarations()) {
+      if (!base.isKind(SyntaxKind.InterfaceDeclaration)) {
+        // extends something that is not a plain interface (e.g. a mapped or
+        // generic type) - cannot render reliably, signal unresolved.
+        return false;
+      }
+      if (!collectInterfaceMembers(base, next, stripComments, seen, visited)) {
+        return false;
+      }
+    }
+  }
+
+  for (const declaration of declarations) {
+    // method and construct/call signatures are not rendered; interfaces used
+    // for validation payloads are data shapes. If any are present, signal
+    // unresolved rather than silently dropping them.
+    if (
+      declaration.getMethods().length ||
+      declaration.getConstructSignatures().length ||
+      declaration.getCallSignatures().length
+    ) {
+      return false;
+    }
+
+    for (const prop of declaration.getProperties()) {
+      const name = prop.getName();
+      const typeNode = prop.getTypeNode();
+
+      const text = typeNode
+        ? next({
+            typeNode,
+            type: typeNode.getType(),
+            typeParameters: undefined,
+          })
+        : stripComments
+          ? "unknown"
+          : "unknown /** unresolved property signature */";
+
+      seen.set(name, {
+        name,
+        text,
+        optional: prop.hasQuestionToken(),
+        readonly: prop.isReadonly(),
+        comments: stripComments
+          ? []
+          : prop.getLeadingCommentRanges().map((e) => e.getText().trim()),
+      });
+    }
+
+    // index signatures (own only; merging/inheritance of these is rare and
+    // ts-morph does not dedupe them by a stable key).
+    for (const signature of declaration.getIndexSignatures()) {
+      const keyTypeNode = signature.getKeyTypeNode();
+      const returnTypeNode = signature.getReturnTypeNode();
+
+      const returnText = returnTypeNode
+        ? next({
+            typeNode: returnTypeNode,
+            type: returnTypeNode.getType(),
+            typeParameters: undefined,
+          })
+        : stripComments
+          ? "unknown"
+          : "unknown /** unresolved */";
+
+      seen.set(`[index:${keyTypeNode.getText()}]`, {
+        name: format("[k: %s]", keyTypeNode.getText()),
+        text: returnText,
+        optional: false,
+        readonly: false,
+        comments: [],
+      });
+    }
+  }
+
+  return true;
+};
+
+export const resolveInterfaceMembers = (
+  iface: InterfaceDeclaration,
+  next: Next,
+  stripComments: boolean,
+): string | undefined => {
+  const seen = new Map<string, RenderedMember>();
+
+  const ok = collectInterfaceMembers(
+    iface,
+    next,
+    stripComments,
+    seen,
+    new Set(),
+  );
+
+  if (!ok) {
+    return undefined;
+  }
+
+  const hunks: Array<string> = [];
+
+  for (const { name, text, optional, readonly, comments } of seen.values()) {
+    hunks.push(
+      [
+        ...comments,
+        format(
+          "%s%s%s: %s",
+          readonly ? "readonly " : "",
+          name,
+          optional ? "?" : "",
+          text,
+        ),
+      ].join("\n"),
+    );
+  }
+
+  return format(
+    hunks.length ? "{\n%s\n}" : "{%s}",
+    hunks.map((e) => indent(e)).join(";\n"),
+  );
 };
