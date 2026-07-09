@@ -1,12 +1,6 @@
 {
-  "extends": "@libconfig/typescript/tsconfig.json",
-  "include": ["./snapshots"],
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "paths": {
-      "@/*": ["./*"]
-    },
-    "moduleResolution": "bundler",
-    "module": "ESNext",
     "noEmit": true
   }
 }
