@@ -1,13 +1,21 @@
 import { format } from "node:util";
 
 import type { HandlerQualifier } from "@/types";
-import { renderCallSignatureAssets } from "@/utils";
+import { isPrimitiveOrLiteral, renderCallSignatureAssets } from "@/utils";
 
-export const handlerQualifier: HandlerQualifier = ({
-  type,
-  typeParameters,
-}) => {
-  const callSignatures = type.getCallSignatures();
+export const handlerQualifier: HandlerQualifier = (data) => {
+  const { typeParameters } = data;
+
+  /**
+   * primitive keywords and literal type nodes can never carry
+   * call signatures - skip them on AST alone so falling through
+   * to the primitive/literal branch stays checker-free.
+   * */
+  if (isPrimitiveOrLiteral(data.typeNode)) {
+    return undefined;
+  }
+
+  const callSignatures = data.type.getCallSignatures();
 
   // if a type has call signatures, it is definitelly a function, is not it?
   return callSignatures.length
@@ -19,7 +27,13 @@ export const handlerQualifier: HandlerQualifier = ({
             parameters,
             returnType,
           } = renderCallSignatureAssets(signature, (data) => {
-            return next({ ...data, typeParameters });
+            return next({
+              typeNode: data.typeNode,
+              get type() {
+                return data.type;
+              },
+              typeParameters,
+            });
           });
           return format(
             callSignatures.length > 1 //

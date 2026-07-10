@@ -23,7 +23,9 @@ export const handlerQualifier: HandlerQualifier = ({
                 "(%s)",
                 next({
                   typeNode: typeNode as TypeNode,
-                  type: typeNode.getType(),
+                  get type() {
+                    return typeNode.getType();
+                  },
                   typeParameters,
                 }),
               );

@@ -5,10 +5,8 @@ import { SyntaxKind } from "ts-morph";
 import type { HandlerQualifier } from "@/types";
 import { indent, renderCallSignatureAssets } from "@/utils";
 
-export const handlerQualifier: HandlerQualifier = (
-  { typeNode, type, typeParameters },
-  { stripComments },
-) => {
+export const handlerQualifier: HandlerQualifier = (data, { stripComments }) => {
+  const { typeNode, typeParameters } = data;
   return typeNode.isKind(SyntaxKind.TypeLiteral)
     ? (next) => {
         /**
@@ -32,7 +30,9 @@ export const handlerQualifier: HandlerQualifier = (
                 returnType: returnTypeNode
                   ? next({
                       typeNode: returnTypeNode,
-                      type: returnTypeNode.getType(),
+                      get type() {
+                        return returnTypeNode.getType();
+                      },
                       typeParameters,
                     })
                   : stripComments
@@ -48,13 +48,20 @@ export const handlerQualifier: HandlerQualifier = (
          *      new (...): ...;
          *    }
          * */
-        const constructSignatures = type
-          .getConstructSignatures()
-          .map((signature) => {
-            return renderCallSignatureAssets(signature, (data) => {
-              return next({ ...data, typeParameters });
-            });
-          });
+        const constructSignatures =
+          typeNode.getConstructSignatures().length === 0
+            ? []
+            : data.type.getConstructSignatures().map((signature) => {
+                return renderCallSignatureAssets(signature, (data) => {
+                  return next({
+                    typeNode: data.typeNode,
+                    get type() {
+                      return data.type;
+                    },
+                    typeParameters,
+                  });
+                });
+              });
 
         /**
          * collecting method signatures, with comments
@@ -77,7 +84,13 @@ export const handlerQualifier: HandlerQualifier = (
               .map((signature) => {
                 const { generics, parameters, returnType } =
                   renderCallSignatureAssets(signature, (data) => {
-                    return next({ ...data, typeParameters });
+                    return next({
+                      typeNode: data.typeNode,
+                      get type() {
+                        return data.type;
+                      },
+                      typeParameters,
+                    });
                   });
                 return {
                   name,
@@ -106,7 +119,9 @@ export const handlerQualifier: HandlerQualifier = (
               text: propertyTypeNode
                 ? next({
                     typeNode: propertyTypeNode,
-                    type: propertyTypeNode.getType(),
+                    get type() {
+                      return propertyTypeNode.getType();
+                    },
                     typeParameters,
                   })
                 : stripComments

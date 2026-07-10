@@ -1,8 +1,9 @@
 import { format } from "node:util";
 
-import { Project, SyntaxKind, type TypeNode } from "ts-morph";
+import { SyntaxKind, type TypeNode } from "ts-morph";
 
 import type { CycleParameters, HandlerQualifier } from "@/types";
+import { createScratchProject } from "@/utils";
 
 /**
  * An in-memory project is relatively lightweight,
@@ -14,14 +15,29 @@ import type { CycleParameters, HandlerQualifier } from "@/types";
  *  - getDescendants()
  *
  * Also avoid calling `project.getTypeChecker()`.
- */
-const project = new Project({
-  compilerOptions: {
-    skipLibCheck: true,
-    noResolve: true,
-  },
-  useInMemoryFileSystem: true,
-});
+ * */
+const scratchProject = createScratchProject();
+
+/**
+ * Synthetic snippets are heavily repetitive (~96% duplicate texts in practice),
+ * and each Project.createSourceFile call pays document-registry and
+ * path-standardization overhead. Memoize the extracted TypeNode per text;
+ * each unique text gets its own persistent in-memory file so cached nodes
+ * are never forgotten by an overwrite.
+ * */
+const scratchCache = new Map<string, TypeNode | undefined>();
+
+const scratchTypeNode = (text: string): TypeNode | undefined => {
+  if (scratchCache.has(text)) {
+    return scratchCache.get(text);
+  }
+  const typeNode = scratchProject
+    .createSourceFile(`__scratch_${scratchCache.size}.ts`, `type __S = ${text}`)
+    .getTypeAlias("__S")
+    ?.getTypeNode();
+  scratchCache.set(text, typeNode);
+  return typeNode;
+};
 
 export const handlerQualifier: HandlerQualifier = (
   { typeNode, typeParameters },
@@ -34,17 +50,21 @@ export const handlerQualifier: HandlerQualifier = (
 
         /**
          * Unfold the indexed-access syntax to reveal each underlying type explicitly.
-         */
+         * */
         const text = format(
           "(%s)[%s]",
           next({
             typeNode: objTypeNode,
-            type: objTypeNode.getType(),
+            get type() {
+              return objTypeNode.getType();
+            },
             typeParameters,
           }),
           next({
             typeNode: idxTypeNode,
-            type: idxTypeNode.getType(),
+            get type() {
+              return idxTypeNode.getType();
+            },
             typeParameters,
           }),
         );
@@ -52,14 +72,8 @@ export const handlerQualifier: HandlerQualifier = (
         /**
          * Create a temporary in-memory type alias synchronously.
          * Reusing the same source file minimizes overhead.
-         */
-        const virtualTypeAlias = project
-          .createSourceFile("__.ts", `type __T = ${text}`, {
-            overwrite: true,
-          })
-          .getTypeAlias("__T");
-
-        const virtualTypeNode = virtualTypeAlias?.getTypeNode();
+         * */
+        const virtualTypeNode = scratchTypeNode(text);
 
         if (!virtualTypeNode) {
           return text;
@@ -227,7 +241,7 @@ const resolveTargetType = (
      *   T[-1]         // ❌ negative indices not supported
      *   T["1"]        // ❌ string indices not supported
      *   T[number]     // ❌ broad number-keyword index not supported
-     */
+     * */
     if (typeof indexLiteral !== "number" || indexLiteral < 0) {
       return undefined;
     }
@@ -317,13 +331,7 @@ const resolveTargetType = (
      *
      * It is critical to wrap the union into ()
      * */
-    const targetType = project
-      .createSourceFile("__union.ts", `type __U = (${nodes.join(" | ")})`, {
-        overwrite: true,
-      })
-      .getTypeAlias("__U");
-
-    return targetType?.getTypeNode();
+    return scratchTypeNode(`(${nodes.join(" | ")})`);
   }
 
   if (typeNode.isKind(SyntaxKind.IntersectionType)) {
@@ -419,15 +427,9 @@ const unwrapTypeReference = (
     const [innerType] = typeNode.getTypeArguments();
 
     if (["Array", "ReadonlyArray"].includes(typeName)) {
-      const typeAlias = project
-        .createSourceFile(
-          "__array.ts",
-          // using getFullText to preserve comments.
-          `type __A = (${innerType.getFullText()})[]`,
-          { overwrite: true },
-        )
-        .getTypeAlias("__A");
-      return unwrapTypeReference(typeAlias?.getTypeNode(), typeParameters);
+      // using getFullText to preserve comments.
+      const typeAlias = scratchTypeNode(`(${innerType.getFullText()})[]`);
+      return unwrapTypeReference(typeAlias, typeParameters);
     }
 
     return unwrapTypeReference(innerType, typeParameters);

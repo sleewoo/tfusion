@@ -19,7 +19,9 @@ export const handlerQualifier: HandlerQualifier = ({ typeNode }) => {
                 ? e.getText()
                 : next({
                     typeNode: e as TypeNode,
-                    type: e.getType(),
+                    get type() {
+                      return e.getType();
+                    },
                   });
             })
             .join("");

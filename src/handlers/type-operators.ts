@@ -11,7 +11,6 @@ export const handlerQualifier: HandlerQualifier = ({
   return typeNode.isKind(SyntaxKind.TypeOperator)
     ? (next) => {
         const innerTypeNode = typeNode.getTypeNode();
-        const innerType = innerTypeNode.getType();
 
         let template = "%s";
 
@@ -31,7 +30,9 @@ export const handlerQualifier: HandlerQualifier = ({
           template,
           next({
             typeNode: innerTypeNode as TypeNode,
-            type: innerType,
+            get type() {
+              return innerTypeNode.getType();
+            },
             typeParameters,
           }),
         );

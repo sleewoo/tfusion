@@ -28,7 +28,9 @@ export const handlerQualifier: HandlerQualifier = (
           returnTypeNode
             ? next({
                 typeNode: returnTypeNode,
-                type: returnTypeNode.getType(),
+                get type() {
+                  return returnTypeNode.getType();
+                },
               })
             : stripComments
               ? "unknown"

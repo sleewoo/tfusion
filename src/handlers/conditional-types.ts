@@ -17,9 +17,15 @@ export const handlerQualifier: HandlerQualifier = ({
             typeNode.getExtendsType(),
             typeNode.getTrueType(),
             typeNode.getFalseType(),
-          ].map((e) =>
-            next({ typeNode: e, type: e.getType(), typeParameters }),
-          ),
+          ].map((typeNode) => {
+            return next({
+              typeNode,
+              get type() {
+                return typeNode.getType();
+              },
+              typeParameters,
+            });
+          }),
         );
       }
     : undefined;

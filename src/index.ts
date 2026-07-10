@@ -31,14 +31,26 @@ import { handlerQualifier as unionQualifier } from "./handlers/unions";
 import { handlerQualifier as voidQualifier } from "./handlers/void-keyword";
 import type { CycleSignature, ResolvedType, UserOptions } from "./types";
 import {
+  createScratchProject,
   getLiteralPropName,
   isPrimitiveOrLiteral,
+  renderPrimitiveOrLiteral,
   renderTypeParameter,
 } from "./utils";
 
 export type { ResolvedType };
 
 export const createProject = (options?: ProjectOptions) => new Project(options);
+
+/**
+ * Scratch project for the properties/formatters phase.
+ * That phase is pure AST work (no type checker), so hosting its
+ * temp file here keeps the caller's project untouched - creating
+ * and removing a source file on the main project would otherwise
+ * invalidate its program and force a full rebuild (with reparse
+ * of every source file) on the next type checker access.
+ * */
+const scratchProject = createScratchProject();
 
 export default (
   project: Project,
@@ -107,7 +119,7 @@ export default (
 
     // if no handler matched so far, perhaps it's a primitive/literal value
     if (isPrimitiveOrLiteral(data.typeNode)) {
-      return data.type.getText(data.typeNode);
+      return renderPrimitiveOrLiteral(data.typeNode);
     }
 
     return stripComments //
@@ -127,8 +139,6 @@ export default (
     }
 
     const typeName = typeAlias.getName();
-
-    const type = typeAlias.getType();
 
     const comments = stripComments
       ? []
@@ -151,7 +161,9 @@ export default (
       const text = traverse(
         {
           typeNode,
-          type,
+          get type() {
+            return typeAlias.getType();
+          },
           typeParameters: typeParameters.reduce(
             (map: Record<string, string>, { name }) => {
               map[name] = name;
@@ -200,7 +212,7 @@ export default (
      * */
     const sourceFileName = `${crc(resolvedTypes.map((e) => e.name).join("+"))}-${Date.now()}.ts`;
 
-    const sourceFile = project.createSourceFile(
+    const sourceFile = scratchProject.createSourceFile(
       sourceFileName,
       formatters?.length
         ? formatters.reduce((c, f) => f(c, sourceFileName), literalTypes)
@@ -258,7 +270,7 @@ export default (
         return [{ ...resolvedType, text, properties }];
       });
 
-    project.removeSourceFile(sourceFile);
+    scratchProject.removeSourceFile(sourceFile);
 
     return resolvedTypesWithProperties;
   }

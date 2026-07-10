@@ -24,7 +24,9 @@ export const handlerQualifier: HandlerQualifier = ({
                 "(%s)",
                 next({
                   typeNode: intersectionTypeNode as TypeNode,
-                  type: intersectionTypeNode.getType(),
+                  get type() {
+                    return intersectionTypeNode.getType();
+                  },
                   typeParameters,
                 }),
               );

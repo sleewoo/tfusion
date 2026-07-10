@@ -21,7 +21,9 @@ export const handlerQualifier: HandlerQualifier = (
 
         return next({
           typeNode: innerTypeNode as TypeNode,
-          type: innerTypeNode.getType(),
+          get type() {
+            return innerTypeNode.getType();
+          },
         });
       }
     : undefined;

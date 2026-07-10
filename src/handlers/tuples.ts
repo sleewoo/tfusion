@@ -27,7 +27,9 @@ export const handlerQualifier: HandlerQualifier = (
 
             text = next({
               typeNode: elementTypeNode,
-              type: elementTypeNode.getType(),
+              get type() {
+                return elementTypeNode.getType();
+              },
               typeParameters,
             });
 
@@ -44,7 +46,9 @@ export const handlerQualifier: HandlerQualifier = (
                 "(%s)",
                 next({
                   typeNode: innerTypeNode,
-                  type: innerTypeNode.getType(),
+                  get type() {
+                    return innerTypeNode.getType();
+                  },
                   typeParameters,
                 }),
               );
@@ -52,14 +56,18 @@ export const handlerQualifier: HandlerQualifier = (
               const elementTypeNode = element.getTypeNode();
               text = next({
                 typeNode: elementTypeNode,
-                type: elementTypeNode.getType(),
+                get type() {
+                  return elementTypeNode.getType();
+                },
                 typeParameters,
               });
             }
           } else {
             text = next({
               typeNode: element,
-              type: element.getType(),
+              get type() {
+                return element.getType();
+              },
               typeParameters,
             });
           }

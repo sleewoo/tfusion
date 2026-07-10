@@ -40,13 +40,13 @@ export const handlerQualifier: HandlerQualifier = (
             : "unknown /** unknown array signature */";
         }
 
-        const arrayType = arrayTypeNode.getType();
-
         return format(
           isParenthesized ? "(%s)[]" : "%s[]",
           next({
             typeNode: arrayTypeNode as TypeNode,
-            type: arrayType,
+            get type() {
+              return arrayTypeNode.getType();
+            },
             typeParameters,
           }),
         );

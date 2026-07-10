@@ -7,6 +7,7 @@ import {
   type MethodDeclaration,
   type ParameterDeclaration,
   type PrefixUnaryExpression,
+  Project,
   type PropertyName,
   type Signature,
   SyntaxKind,
@@ -48,21 +49,36 @@ export const renderTypeParameter = (
   const defaultParam = param.getDefault();
 
   if (constraint && defaultParam) {
-    const text = next({ typeNode: defaultParam, type: defaultParam.getType() });
+    const text = next({
+      typeNode: defaultParam,
+      get type() {
+        return defaultParam.getType();
+      },
+    });
     return {
       name,
       text,
       fullText: format(
         "%s extends %s = %s",
         name,
-        next({ typeNode: constraint, type: constraint.getType() }),
+        next({
+          typeNode: constraint,
+          get type() {
+            return constraint.getType();
+          },
+        }),
         text,
       ),
     };
   }
 
   if (constraint) {
-    const text = next({ typeNode: constraint, type: constraint.getType() });
+    const text = next({
+      typeNode: constraint,
+      get type() {
+        return constraint.getType();
+      },
+    });
     return {
       name,
       text,
@@ -71,7 +87,12 @@ export const renderTypeParameter = (
   }
 
   if (defaultParam) {
-    const text = next({ typeNode: defaultParam, type: defaultParam.getType() });
+    const text = next({
+      typeNode: defaultParam,
+      get type() {
+        return defaultParam.getType();
+      },
+    });
     return {
       name,
       text,
@@ -113,14 +134,18 @@ export const renderCallSignatureAssets = (signature: Signature, next: Next) => {
       predicateTypeNode
         ? next({
             typeNode: predicateTypeNode,
-            type: predicateTypeNode.getType(),
+            get type() {
+              return predicateTypeNode.getType();
+            },
           })
         : "unknown",
     );
   } else if (returnTypeNode) {
     returnType = next({
       typeNode: returnTypeNode,
-      type: returnTypeNode.getType(),
+      get type() {
+        return returnTypeNode.getType();
+      },
     });
   }
 
@@ -140,7 +165,9 @@ export const renderCallSignatureParameter = (
   const value = paramTypeNode
     ? next({
         typeNode: paramTypeNode,
-        type: paramTypeNode.getType(),
+        get type() {
+          return paramTypeNode.getType();
+        },
       })
     : "unknown";
 
@@ -167,6 +194,27 @@ export const indent = (hunk: string, level = 1) => {
  * - Literal types: string literals, numeric literals, boolean literals (true/false)
  * - Negative numbers: -123, -1.5
  * */
+/**
+ * Renders a primitive keyword or literal type node without touching
+ * the type checker. Matches checker output (type.getText) for the
+ * primitive/literal surface: numeric and bigint literals are printed
+ * in their canonical form (the parser stores the normalized value
+ * in compilerNode.text, e.g. 0x1a3f -> "6719"), everything else is
+ * emitted as written.
+ * */
+export const renderPrimitiveOrLiteral = (node: TypeNode): string => {
+  if (node.isKind(SyntaxKind.LiteralType)) {
+    const literalNode = node.getLiteral();
+    if (literalNode.isKind(SyntaxKind.NumericLiteral)) {
+      return literalNode.compilerNode.text;
+    }
+    if (literalNode.isKind(SyntaxKind.BigIntLiteral)) {
+      return literalNode.compilerNode.text;
+    }
+  }
+  return node.getText();
+};
+
 export const isPrimitiveOrLiteral = (node: TypeNode): boolean => {
   const text = node.getText();
 
@@ -360,7 +408,9 @@ const collectInterfaceMembers = (
       const text = typeNode
         ? next({
             typeNode,
-            type: typeNode.getType(),
+            get type() {
+              return typeNode.getType();
+            },
             typeParameters: undefined,
           })
         : stripComments
@@ -387,7 +437,9 @@ const collectInterfaceMembers = (
       const returnText = returnTypeNode
         ? next({
             typeNode: returnTypeNode,
-            type: returnTypeNode.getType(),
+            get type() {
+              return returnTypeNode.getType();
+            },
             typeParameters: undefined,
           })
         : stripComments
@@ -447,4 +499,14 @@ export const resolveInterfaceMembers = (
     hunks.length ? "{\n%s\n}" : "{%s}",
     hunks.map((e) => indent(e)).join(";\n"),
   );
+};
+
+export const createScratchProject = () => {
+  return new Project({
+    compilerOptions: {
+      skipLibCheck: true,
+      noResolve: true,
+    },
+    useInMemoryFileSystem: true,
+  });
 };

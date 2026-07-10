@@ -21,7 +21,9 @@ export const handlerQualifier: HandlerQualifier = (
         const typeArguments = typeNode.getTypeArguments().map((param) => {
           return next({
             typeNode: param,
-            type: param.getType(),
+            get type() {
+              return param.getType();
+            },
             typeParameters,
           });
         });
@@ -60,10 +62,12 @@ export const handlerQualifier: HandlerQualifier = (
         let text: string;
 
         if (aliasNode) {
-          const aliasType = aliasNode.getType();
           text = next({
             typeNode: aliasNode,
-            type: aliasType.getTargetType() || aliasType,
+            get type() {
+              const aliasType = aliasNode.getType();
+              return aliasType.getTargetType() || aliasType;
+            },
             typeParameters: aliasDeclaration
               ?.getTypeParameters()
               .reduce((map: CycleParameters, param, i) => {

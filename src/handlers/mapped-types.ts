@@ -66,7 +66,9 @@ export const handlerQualifier: HandlerQualifier = ({
           mappedTypeConstraint
             ? next({
                 typeNode: mappedTypeConstraint,
-                type: mappedTypeConstraint.getType(),
+                get type() {
+                  return mappedTypeConstraint.getType();
+                },
                 typeParameters,
               })
             : "unknown /** unresolved mapped type constraint */",
@@ -75,7 +77,9 @@ export const handlerQualifier: HandlerQualifier = ({
                 " as %s",
                 next({
                   typeNode: nameTypeNode,
-                  type: nameTypeNode.getType(),
+                  get type() {
+                    return nameTypeNode.getType();
+                  },
                   typeParameters,
                 }),
               )
@@ -84,7 +88,9 @@ export const handlerQualifier: HandlerQualifier = ({
           mappedTypeNode
             ? next({
                 typeNode: mappedTypeNode,
-                type: mappedTypeNode?.getType(),
+                get type() {
+                  return mappedTypeNode?.getType();
+                },
                 typeParameters,
               })
             : "unknown /** unresolved mapped type node */",
