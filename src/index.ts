@@ -208,16 +208,11 @@ export default (
      * Creating a source file containing resolved types.
      * Needed to extract properties for type literals and apply formatters, if any.
      * Creating a temp source file is pretty lightweight operation -
-     * no file-system calls and no type checker usage, jsut pure AST operations.
+     * no file-system calls and no type checker usage, just pure AST operations.
      * */
-    const sourceFileName = `${crc(resolvedTypes.map((e) => e.name).join("+"))}-${Date.now()}.ts`;
-
     const sourceFile = scratchProject.createSourceFile(
-      sourceFileName,
-      formatters?.length
-        ? formatters.reduce((c, f) => f(c, sourceFileName), literalTypes)
-        : literalTypes,
-      { overwrite: true },
+      `${crc(literalTypes)}-${Date.now()}.ts`,
+      literalTypes,
     );
 
     const resolvedTypesWithProperties = sourceFile
@@ -270,7 +265,8 @@ export default (
         return [{ ...resolvedType, text, properties }];
       });
 
-    scratchProject.removeSourceFile(sourceFile);
+    // NOTE: do not removeSourceFile, that would invalidate project's cache,
+    // triggering cache rebuild on next call.
 
     return resolvedTypesWithProperties;
   }
