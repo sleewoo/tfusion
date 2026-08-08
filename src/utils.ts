@@ -8,7 +8,7 @@ import {
   type ParameterDeclaration,
   type PrefixUnaryExpression,
   Project,
-  type PropertyName,
+  type PropertySignature,
   type Signature,
   SyntaxKind,
   type TypeNode,
@@ -32,7 +32,8 @@ import type { Next, ResolvedType } from "./types";
  * @param prop The PropertySignature node to extract the name from.
  * @returns A string representing the property name
  * */
-export const getLiteralPropName = (nameNode: PropertyName): string => {
+export const getLiteralPropName = (prop: PropertySignature): string => {
+  const nameNode = prop.getNameNode();
   return nameNode.isKind(SyntaxKind.StringLiteral) ||
     nameNode.isKind(SyntaxKind.NumericLiteral)
     ? nameNode.getLiteralText()

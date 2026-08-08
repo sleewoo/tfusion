@@ -246,14 +246,12 @@ export default (
         const properties = typeNode
           .getChildrenOfKind(SyntaxKind.PropertySignature)
           .flatMap((prop) => {
-            const nameNode = prop.getNameNode();
             const typeNode = prop.getTypeNode();
             return typeNode
               ? [
                   {
-                    name: prop.getName(),
-                    nameLiteral: getLiteralPropName(nameNode),
-                    nameKind: nameNode.getKindName() as never,
+                    name: getLiteralPropName(prop),
+                    nameDeclaration: prop.getName(),
                     text: typeNode.getText(),
                     optional: prop.hasQuestionToken(),
                     readonly: prop.isReadonly(),

@@ -197,11 +197,10 @@ export type ResolvedType = {
    * Effective only if `withProperties` option provided.
    * */
   properties?: Array<{
-    // Verbatim declaration name, exactly as it appears in the source
-    name: string;
     // Normalized name; quotes stripped, numeric values canonicalized
-    nameLiteral: string;
-    nameKind: keyof typeof SyntaxKind;
+    name: string;
+    // Verbatim declaration name, exactly as it appears in the source
+    nameDeclaration: string;
     text: string;
     optional: boolean;
     readonly: boolean;
